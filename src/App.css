@@ -24,6 +24,8 @@
 }
 
 .sidebar li {
+  display: flex;
+  align-items: center;
   margin: 15px 0;
   cursor: pointer;
   padding: 10px;
@@ -34,6 +36,15 @@
 
 .sidebar li:hover {
   background-color: #555;
+}
+
+.sidebar li .app-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: 10px;
+  border-radius: 50%;
+  background-color: #fff;
+  padding: 5px;
 }
 
 .main-content {
@@ -102,6 +113,7 @@
   justify-content: center;
   padding: 20px;
   background-color: #f0f0f0;
+  position: relative;
 }
 
 canvas {
@@ -114,4 +126,35 @@ canvas {
 
 canvas:hover {
   box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+}
+
+.selected-apps {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.selected-app {
+  position: absolute;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin: 5px;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);  
+  cursor: grab;
+}
+
+.selected-app:active {
+  cursor: grabbing;
+}
+
+.selected-app .selected-app-icon {
+  width: 100%;
+  height: 100%;
 }

@@ -1,15 +1,20 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
+import { FaGoogle, FaGoogleDrive, FaRegStickyNote } from 'react-icons/fa';
+import { SiOpenai } from 'react-icons/si'; // Assuming SiOpenai represents ChatGPT
 
 function App() {
   const canvasRef = useRef(null);
+  const [selectedApps, setSelectedApps] = useState([]);
+  const [dragging, setDragging] = useState(null);
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     canvas.width = window.innerWidth - 220; // Adjusted for sidebar width and padding
     canvas.height = window.innerHeight - 60; // Adjusted for header height
-    
+
     // Set up canvas style
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -27,14 +32,55 @@ function App() {
     ctx.stroke();
   }, []);
 
+  const addApp = (app) => {
+    setSelectedApps([...selectedApps, { app, x: 50, y: 50 }]);
+  };
+
+  const renderIcon = (app) => {
+    switch(app) {
+      case 'Gmail':
+        return <FaGoogle className="selected-app-icon" style={{ color: '#4285F4' }} />;
+      case 'Google Drive':
+        return <FaGoogleDrive className="selected-app-icon" style={{ color: '#0F9D58' }} />;
+      case 'Notion':
+        return <FaRegStickyNote className="selected-app-icon" style={{ color: '#000000' }} />;
+      case 'ChatGPT':
+        return <SiOpenai className="selected-app-icon" style={{ color: '#00A67E' }} />;
+      default:
+        return null;
+    }
+  };
+
+  const handleMouseDown = (e, index) => {
+    const appElement = e.target.getBoundingClientRect();
+    setDragging(index);
+    setDragOffset({
+      x: e.clientX - appElement.left,
+      y: e.clientY - appElement.top,
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (dragging === null) return;
+    const newSelectedApps = [...selectedApps];
+    newSelectedApps[dragging].x = e.clientX - dragOffset.x;
+    newSelectedApps[dragging].y = e.clientY - dragOffset.y;
+    setSelectedApps(newSelectedApps);
+  };
+
+  const handleMouseUp = () => {
+    setDragging(null);
+  };
+
   return (
-    <div className="app">
+    <div className="app" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
       <aside className="sidebar">
         <h2>Apps</h2>
         <ul>
-          <li>Add App 1</li>
-          <li>Add App 2</li>
-          <li>Add App 3</li>
+          <li onClick={() => addApp('Gmail')}><FaGoogle className="app-icon"/> Gmail</li>
+          <li onClick={() => addApp('Google Drive')}><FaGoogleDrive className="app-icon"/> Google Drive</li>
+          <li onClick={() => addApp('Notion')}><FaRegStickyNote className="app-icon"/> Notion</li>
+          <li onClick={() => addApp('ChatGPT')}><SiOpenai className="app-icon"/> ChatGPT</li>
           {/* Add more app options here */}
         </ul>
       </aside>
@@ -53,6 +99,18 @@ function App() {
         </header>
         <div className="canvas-container">
           <canvas ref={canvasRef} id="canvas"></canvas>
+          <div className="selected-apps">
+            {selectedApps.map((item, index) => (
+              <div
+                key={index}
+                className="selected-app"
+                style={{ left: item.x, top: item.y }}
+                onMouseDown={(e) => handleMouseDown(e, index)}
+              >
+                {renderIcon(item.app)}
+              </div>
+            ))}
+          </div>
         </div>
       </main>
     </div>
