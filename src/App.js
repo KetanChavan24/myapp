@@ -8,6 +8,7 @@ function App() {
   const [selectedApps, setSelectedApps] = useState([]);
   const [dragging, setDragging] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [selectedAppForMenu, setSelectedAppForMenu] = useState(null); // State to handle selected app for menu
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -72,6 +73,14 @@ function App() {
     setDragging(null);
   };
 
+  const handleAppClick = (item) => {
+    setSelectedAppForMenu(item);
+  };
+
+  const closeMenu = () => {
+    setSelectedAppForMenu(null);
+  };
+
   return (
     <div className="app" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
       <aside className="sidebar">
@@ -106,6 +115,7 @@ function App() {
                 className="selected-app"
                 style={{ left: item.x, top: item.y }}
                 onMouseDown={(e) => handleMouseDown(e, index)}
+                onClick={() => handleAppClick(item)} // Add onClick handler
               >
                 {renderIcon(item.app)}
               </div>
@@ -113,6 +123,18 @@ function App() {
           </div>
         </div>
       </main>
+      {selectedAppForMenu && (
+        <aside className="right-menu" style={{ top: selectedAppForMenu.y, left: selectedAppForMenu.x - 300 }}>
+          <div className="right-menu-header">
+            <h2>{selectedAppForMenu.app} Options</h2>
+            <button className="close-button" onClick={closeMenu}>X</button>
+          </div>
+          <div className="right-menu-content">
+            {/* Add options or details for the selected app here */}
+            <p>Details or options for {selectedAppForMenu.app}</p>
+          </div>
+        </aside>
+      )}
     </div>
   );
 }
