@@ -8,7 +8,7 @@ function App() {
   const [selectedApps, setSelectedApps] = useState([]);
   const [dragging, setDragging] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [selectedAppForMenu, setSelectedAppForMenu] = useState(null); // State to handle selected app for menu
+  const [selectedAppForMenu, setSelectedAppForMenu] = useState(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -38,7 +38,7 @@ function App() {
   };
 
   const renderIcon = (app) => {
-    switch(app) {
+    switch (app) {
       case 'Gmail':
         return <FaGoogle className="selected-app-icon" style={{ color: '#4285F4' }} />;
       case 'Google Drive':
@@ -53,16 +53,17 @@ function App() {
   };
 
   const handleMouseDown = (e, index) => {
-    const appElement = e.target.getBoundingClientRect();
     setDragging(index);
+    const app = selectedApps[index];
     setDragOffset({
-      x: e.clientX - appElement.left,
-      y: e.clientY - appElement.top,
+      x: e.clientX - app.x,
+      y: e.clientY - app.y,
     });
   };
 
   const handleMouseMove = (e) => {
     if (dragging === null) return;
+
     const newSelectedApps = [...selectedApps];
     newSelectedApps[dragging].x = e.clientX - dragOffset.x;
     newSelectedApps[dragging].y = e.clientY - dragOffset.y;
@@ -86,11 +87,10 @@ function App() {
       <aside className="sidebar">
         <h2>Apps</h2>
         <ul>
-          <li onClick={() => addApp('Gmail')}><FaGoogle className="app-icon"/> Gmail</li>
-          <li onClick={() => addApp('Google Drive')}><FaGoogleDrive className="app-icon"/> Google Drive</li>
-          <li onClick={() => addApp('Notion')}><FaRegStickyNote className="app-icon"/> Notion</li>
-          <li onClick={() => addApp('ChatGPT')}><SiOpenai className="app-icon"/> ChatGPT</li>
-          {/* Add more app options here */}
+          <li onClick={() => addApp('Gmail')}><FaGoogle className="app-icon" /> Gmail</li>
+          <li onClick={() => addApp('Google Drive')}><FaGoogleDrive className="app-icon" /> Google Drive</li>
+          <li onClick={() => addApp('Notion')}><FaRegStickyNote className="app-icon" /> Notion</li>
+          <li onClick={() => addApp('ChatGPT')}><SiOpenai className="app-icon" /> ChatGPT</li>
         </ul>
       </aside>
       <main className="main-content">
@@ -115,7 +115,7 @@ function App() {
                 className="selected-app"
                 style={{ left: item.x, top: item.y }}
                 onMouseDown={(e) => handleMouseDown(e, index)}
-                onClick={() => handleAppClick(item)} // Add onClick handler
+                onClick={() => handleAppClick(item)}
               >
                 {renderIcon(item.app)}
               </div>
@@ -124,13 +124,18 @@ function App() {
         </div>
       </main>
       {selectedAppForMenu && (
-        <aside className="right-menu" style={{ top: selectedAppForMenu.y, left: selectedAppForMenu.x - 300 }}>
+        <aside
+          className="right-menu"
+          style={{
+            top: selectedAppForMenu.y,
+            left: selectedAppForMenu.x + 60, // Adjusted to place the menu to the right of the icon
+          }}
+        >
           <div className="right-menu-header">
             <h2>{selectedAppForMenu.app} Options</h2>
             <button className="close-button" onClick={closeMenu}>X</button>
           </div>
           <div className="right-menu-content">
-            {/* Add options or details for the selected app here */}
             <p>Details or options for {selectedAppForMenu.app}</p>
           </div>
         </aside>
