@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import { FaGoogle, FaGoogleDrive, FaRegStickyNote } from 'react-icons/fa';
-import { SiOpenai } from 'react-icons/si'; // Assuming SiOpenai represents ChatGPT
+import { SiOpenai } from 'react-icons/si';
 
 function App() {
   const canvasRef = useRef(null);
@@ -9,18 +9,18 @@ function App() {
   const [dragging, setDragging] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [selectedAppForMenu, setSelectedAppForMenu] = useState(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connections, setConnections] = useState([]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth - 220; // Adjusted for sidebar width and padding
-    canvas.height = window.innerHeight - 60; // Adjusted for header height
+    canvas.width = window.innerWidth - 220;
+    canvas.height = window.innerHeight - 60;
 
-    // Set up canvas style
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Example drawing - a grid like Excalidraw
     ctx.strokeStyle = '#e0e0e0';
     for (let x = 0.5; x < canvas.width; x += 20) {
       ctx.moveTo(x, 0);
@@ -31,7 +31,16 @@ function App() {
       ctx.lineTo(canvas.width, y);
     }
     ctx.stroke();
-  }, []);
+
+    connections.forEach(({ from, to }) => {
+      ctx.beginPath();
+      ctx.moveTo(from.x, from.y);
+      ctx.lineTo(to.x, to.y);
+      ctx.strokeStyle = '#000';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    });
+  }, [connections]);
 
   const addApp = (app) => {
     setSelectedApps([...selectedApps, { app, x: 50, y: 50 }]);
@@ -74,12 +83,29 @@ function App() {
     setDragging(null);
   };
 
-  const handleAppClick = (item) => {
-    setSelectedAppForMenu(item);
+  const handleAppClick = (item, index) => {
+    if (isConnecting) {
+      const fromApp = selectedApps[selectedAppForMenu];
+      const toApp = item;
+      const connection = {
+        from: { x: fromApp.x + 25, y: fromApp.y + 25 },
+        to: { x: toApp.x + 25, y: toApp.y + 25 },
+      };
+      setConnections([...connections, connection]);
+      setIsConnecting(false);
+      setSelectedAppForMenu(null);
+    } else {
+      setSelectedAppForMenu(index);
+    }
   };
 
   const closeMenu = () => {
     setSelectedAppForMenu(null);
+    setIsConnecting(false);
+  };
+
+  const startConnecting = () => {
+    setIsConnecting(true);
   };
 
   return (
@@ -115,7 +141,7 @@ function App() {
                 className="selected-app"
                 style={{ left: item.x, top: item.y }}
                 onMouseDown={(e) => handleMouseDown(e, index)}
-                onClick={() => handleAppClick(item)}
+                onClick={() => handleAppClick(item, index)}
               >
                 {renderIcon(item.app)}
               </div>
@@ -123,20 +149,24 @@ function App() {
           </div>
         </div>
       </main>
-      {selectedAppForMenu && (
+      {selectedAppForMenu !== null && (
         <aside
           className="right-menu"
           style={{
-            top: selectedAppForMenu.y,
-            left: selectedAppForMenu.x + 60, // Adjusted to place the menu to the right of the icon
+            top: selectedApps[selectedAppForMenu].y,
+            left: selectedApps[selectedAppForMenu].x + 60,
           }}
         >
           <div className="right-menu-header">
-            <h2>{selectedAppForMenu.app} Options</h2>
+            <h2>{selectedApps[selectedAppForMenu].app} Options</h2>
             <button className="close-button" onClick={closeMenu}>X</button>
           </div>
           <div className="right-menu-content">
-            <p>Details or options for {selectedAppForMenu.app}</p>
+            <p>Example Task 1</p>
+            <p>Example Task 2</p>
+            <p onClick={startConnecting} style={{ cursor: 'pointer', color: 'blue' }}>
+              Connect to another app
+            </p>
           </div>
         </aside>
       )}
