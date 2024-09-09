@@ -18,9 +18,12 @@ function App() {
     canvas.width = window.innerWidth - 220;
     canvas.height = window.innerHeight - 60;
 
+    // Clear the canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Set grid background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-
     ctx.strokeStyle = '#e0e0e0';
     for (let x = 0.5; x < canvas.width; x += 20) {
       ctx.moveTo(x, 0);
@@ -32,6 +35,7 @@ function App() {
     }
     ctx.stroke();
 
+    // Draw the connections
     connections.forEach(({ from, to }) => {
       ctx.beginPath();
       ctx.moveTo(from.x, from.y);
@@ -40,7 +44,10 @@ function App() {
       ctx.lineWidth = 2;
       ctx.stroke();
     });
-  }, [connections]);
+
+    // Removed text rendering for app names here
+
+  }, [connections, selectedApps]);
 
   const addApp = (app) => {
     setSelectedApps([...selectedApps, { app, x: 50, y: 50 }]);
@@ -77,6 +84,24 @@ function App() {
     newSelectedApps[dragging].x = e.clientX - dragOffset.x;
     newSelectedApps[dragging].y = e.clientY - dragOffset.y;
     setSelectedApps(newSelectedApps);
+
+    // Update the connections dynamically as the app is moved
+    setConnections((prevConnections) =>
+      prevConnections.map((conn) => {
+        if (conn.from.index === dragging) {
+          return {
+            ...conn,
+            from: { x: newSelectedApps[dragging].x + 25, y: newSelectedApps[dragging].y + 25, index: dragging },
+          };
+        } else if (conn.to.index === dragging) {
+          return {
+            ...conn,
+            to: { x: newSelectedApps[dragging].x + 25, y: newSelectedApps[dragging].y + 25, index: dragging },
+          };
+        }
+        return conn;
+      })
+    );
   };
 
   const handleMouseUp = () => {
@@ -88,8 +113,8 @@ function App() {
       const fromApp = selectedApps[selectedAppForMenu];
       const toApp = item;
       const connection = {
-        from: { x: fromApp.x + 25, y: fromApp.y + 25 },
-        to: { x: toApp.x + 25, y: toApp.y + 25 },
+        from: { x: fromApp.x + 25, y: fromApp.y + 25, index: selectedAppForMenu },
+        to: { x: toApp.x + 25, y: toApp.y + 25, index },
       };
       setConnections([...connections, connection]);
       setIsConnecting(false);
@@ -164,9 +189,7 @@ function App() {
           <div className="right-menu-content">
             <p>Example Task 1</p>
             <p>Example Task 2</p>
-            <p onClick={startConnecting} style={{ cursor: 'pointer', color: 'blue' }}>
-              Connect to another app
-            </p>
+            <p onClick={startConnecting} style={{ cursor: 'pointer', color: 'blue' }}>Connect to another app</p>
           </div>
         </aside>
       )}
