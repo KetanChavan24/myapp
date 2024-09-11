@@ -45,8 +45,6 @@ function App() {
       ctx.stroke();
     });
 
-    // Removed text rendering for app names here
-
   }, [connections, selectedApps]);
 
   const addApp = (app) => {
@@ -111,11 +109,22 @@ function App() {
   const handleAppClick = (item, index) => {
     if (isConnecting) {
       const fromApp = selectedApps[selectedAppForMenu];
+
+      // Check if the fromApp already has a connection as "from"
+      const existingConnection = connections.find((conn) => conn.from.index === selectedAppForMenu);
+      if (existingConnection) {
+        alert(`${fromApp.app} is already connected as a starting point.`);
+        setIsConnecting(false);
+        setSelectedAppForMenu(null);
+        return;
+      }
+
       const toApp = item;
       const connection = {
         from: { x: fromApp.x + 25, y: fromApp.y + 25, index: selectedAppForMenu },
         to: { x: toApp.x + 25, y: toApp.y + 25, index },
       };
+
       setConnections([...connections, connection]);
       setIsConnecting(false);
       setSelectedAppForMenu(null);
