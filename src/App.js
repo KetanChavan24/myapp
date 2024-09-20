@@ -11,6 +11,8 @@ function App() {
   const [selectedAppForMenu, setSelectedAppForMenu] = useState(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [connections, setConnections] = useState([]);
+  const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [dragged, setDragged] = useState(false); // New state to track dragging
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -68,6 +70,7 @@ function App() {
 
   const handleMouseDown = (e, index) => {
     setDragging(index);
+    setDragged(false); // Reset drag state when starting drag
     const app = selectedApps[index];
     setDragOffset({
       x: e.clientX - app.x,
@@ -82,6 +85,8 @@ function App() {
     newSelectedApps[dragging].x = e.clientX - dragOffset.x;
     newSelectedApps[dragging].y = e.clientY - dragOffset.y;
     setSelectedApps(newSelectedApps);
+
+    setDragged(true); // Mark as dragged when movement occurs
 
     // Update the connections dynamically as the app is moved
     setConnections((prevConnections) =>
@@ -107,29 +112,31 @@ function App() {
   };
 
   const handleAppClick = (item, index) => {
-    if (isConnecting) {
-      const fromApp = selectedApps[selectedAppForMenu];
+    if (!dragged) { // Menu only opens if not dragged
+      if (isConnecting) {
+        const fromApp = selectedApps[selectedAppForMenu];
 
-      // Check if the fromApp already has a connection as "from"
-      const existingConnection = connections.find((conn) => conn.from.index === selectedAppForMenu);
-      if (existingConnection) {
-        alert(`${fromApp.app} is already connected as a starting point.`);
+        // Check if the fromApp already has a connection as "from"
+        const existingConnection = connections.find((conn) => conn.from.index === selectedAppForMenu);
+        if (existingConnection) {
+          alert(`${fromApp.app} is already connected as a starting point.`);
+          setIsConnecting(false);
+          setSelectedAppForMenu(null);
+          return;
+        }
+
+        const toApp = item;
+        const connection = {
+          from: { x: fromApp.x + 25, y: fromApp.y + 25, index: selectedAppForMenu },
+          to: { x: toApp.x + 25, y: toApp.y + 25, index },
+        };
+
+        setConnections([...connections, connection]);
         setIsConnecting(false);
         setSelectedAppForMenu(null);
-        return;
+      } else {
+        setSelectedAppForMenu(index);
       }
-
-      const toApp = item;
-      const connection = {
-        from: { x: fromApp.x + 25, y: fromApp.y + 25, index: selectedAppForMenu },
-        to: { x: toApp.x + 25, y: toApp.y + 25, index },
-      };
-
-      setConnections([...connections, connection]);
-      setIsConnecting(false);
-      setSelectedAppForMenu(null);
-    } else {
-      setSelectedAppForMenu(index);
     }
   };
 
@@ -140,6 +147,27 @@ function App() {
 
   const startConnecting = () => {
     setIsConnecting(true);
+    setDropdownVisible(true); // Show the dropdown for connection
+  };
+
+  const handleDropdownChange = (e) => {
+    const toAppIndex = parseInt(e.target.value);
+    const fromApp = selectedApps[selectedAppForMenu];
+    const toApp = selectedApps[toAppIndex];
+
+    if (fromApp && toApp) {
+      const connection = {
+        from: { x: fromApp.x + 25, y: fromApp.y + 25, index: selectedAppForMenu },
+        to: { x: toApp.x + 25, y: toApp.y + 25, index: toAppIndex },
+      };
+
+      setConnections([...connections, connection]);  // Update connections with the new link
+    }
+
+    // Reset UI state after forming connection
+    setIsConnecting(false);
+    setDropdownVisible(false);
+    setSelectedAppForMenu(null);
   };
 
   return (
@@ -196,9 +224,19 @@ function App() {
             <button className="close-button" onClick={closeMenu}>X</button>
           </div>
           <div className="right-menu-content">
-            <p>Example Task 1</p>
-            <p>Example Task 2</p>
-            <p onClick={startConnecting} style={{ cursor: 'pointer', color: 'blue' }}>Connect to another app</p>
+            <button onClick={startConnecting}>Connect to another app</button>
+            {dropdownVisible && (
+              <select onChange={handleDropdownChange}>
+                <option value="">Select App</option>
+                {selectedApps.map((app, index) => (
+                  index !== selectedAppForMenu && (
+                    <option key={index} value={index}>
+                      {app.app}
+                    </option>
+                  )
+                ))}
+              </select>
+            )}
           </div>
         </aside>
       )}
