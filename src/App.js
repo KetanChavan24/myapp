@@ -63,10 +63,13 @@ function App() {
         return <FaRegStickyNote className="selected-app-icon" style={{ color: '#000000' }} />;
       case 'ChatGPT':
         return <SiOpenai className="selected-app-icon" style={{ color: '#00A67E' }} />;
+      case 'Router':  // New router icon
+        return <div className="selected-app-icon">🔗</div>;
       default:
         return null;
     }
   };
+  
 
   const handleMouseDown = (e, index) => {
     setDragging(index);
@@ -115,22 +118,24 @@ function App() {
     if (!dragged) { // Menu only opens if not dragged
       if (isConnecting) {
         const fromApp = selectedApps[selectedAppForMenu];
-
-        // Check if the fromApp already has a connection as "from"
-        const existingConnection = connections.find((conn) => conn.from.index === selectedAppForMenu);
-        if (existingConnection) {
-          alert(`${fromApp.app} is already connected as a starting point.`);
-          setIsConnecting(false);
-          setSelectedAppForMenu(null);
-          return;
+  
+        // Check if the fromApp already has a connection as "from" (but skip this check if it's a router)
+        if (fromApp.app !== 'Router') {
+          const existingConnection = connections.find((conn) => conn.from.index === selectedAppForMenu);
+          if (existingConnection) {
+            alert(`${fromApp.app} is already connected as a starting point.`);
+            setIsConnecting(false);
+            setSelectedAppForMenu(null);
+            return;
+          }
         }
-
+  
         const toApp = item;
         const connection = {
           from: { x: fromApp.x + 25, y: fromApp.y + 25, index: selectedAppForMenu },
           to: { x: toApp.x + 25, y: toApp.y + 25, index },
         };
-
+  
         setConnections([...connections, connection]);
         setIsConnecting(false);
         setSelectedAppForMenu(null);
@@ -139,6 +144,7 @@ function App() {
       }
     }
   };
+  
 
   const closeMenu = () => {
     setSelectedAppForMenu(null);
@@ -173,14 +179,16 @@ function App() {
   return (
     <div className="app" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
       <aside className="sidebar">
-        <h2>Apps</h2>
-        <ul>
-          <li onClick={() => addApp('Gmail')}><FaGoogle className="app-icon" /> Gmail</li>
-          <li onClick={() => addApp('Google Drive')}><FaGoogleDrive className="app-icon" /> Google Drive</li>
-          <li onClick={() => addApp('Notion')}><FaRegStickyNote className="app-icon" /> Notion</li>
-          <li onClick={() => addApp('ChatGPT')}><SiOpenai className="app-icon" /> ChatGPT</li>
-        </ul>
-      </aside>
+  <h2>Apps</h2>
+  <ul>
+    <li onClick={() => addApp('Gmail')}><FaGoogle className="app-icon" /> Gmail</li>
+    <li onClick={() => addApp('Google Drive')}><FaGoogleDrive className="app-icon" /> Google Drive</li>
+    <li onClick={() => addApp('Notion')}><FaRegStickyNote className="app-icon" /> Notion</li>
+    <li onClick={() => addApp('ChatGPT')}><SiOpenai className="app-icon" /> ChatGPT</li>
+    <li onClick={() => addApp('Router')}> Router</li> {/* New router option */}
+  </ul>
+</aside>
+
       <main className="main-content">
         <header className="header">
           <div className="header-content">
