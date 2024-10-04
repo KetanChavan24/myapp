@@ -69,6 +69,7 @@ function App() {
         return null;
     }
   };
+  
 
   const handleMouseDown = (e, index) => {
     setDragging(index);
@@ -83,22 +84,9 @@ function App() {
   const handleMouseMove = (e) => {
     if (dragging === null) return;
 
-    const canvas = canvasRef.current;
     const newSelectedApps = [...selectedApps];
-    let newX = e.clientX - dragOffset.x;
-    let newY = e.clientY - dragOffset.y;
-
-    // Ensure that the app stays within the canvas boundaries
-    const appSize = 50; // Assuming the app icon is 50x50
-    const canvasWidth = canvas.width;
-    const canvasHeight = canvas.height;
-
-    // Clamp the new positions within the canvas boundaries
-    newX = Math.max(0, Math.min(newX, canvasWidth - appSize));
-    newY = Math.max(0, Math.min(newY, canvasHeight - appSize));
-
-    newSelectedApps[dragging].x = newX;
-    newSelectedApps[dragging].y = newY;
+    newSelectedApps[dragging].x = e.clientX - dragOffset.x;
+    newSelectedApps[dragging].y = e.clientY - dragOffset.y;
     setSelectedApps(newSelectedApps);
 
     setDragged(true); // Mark as dragged when movement occurs
@@ -130,7 +118,7 @@ function App() {
     if (!dragged) { // Menu only opens if not dragged
       if (isConnecting) {
         const fromApp = selectedApps[selectedAppForMenu];
-
+  
         // Check if the fromApp already has a connection as "from" (but skip this check if it's a router)
         if (fromApp.app !== 'Router') {
           const existingConnection = connections.find((conn) => conn.from.index === selectedAppForMenu);
@@ -141,13 +129,13 @@ function App() {
             return;
           }
         }
-
+  
         const toApp = item;
         const connection = {
           from: { x: fromApp.x + 25, y: fromApp.y + 25, index: selectedAppForMenu },
           to: { x: toApp.x + 25, y: toApp.y + 25, index },
         };
-
+  
         setConnections([...connections, connection]);
         setIsConnecting(false);
         setSelectedAppForMenu(null);
@@ -156,6 +144,7 @@ function App() {
       }
     }
   };
+  
 
   const closeMenu = () => {
     setSelectedAppForMenu(null);
@@ -190,15 +179,15 @@ function App() {
   return (
     <div className="app" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
       <aside className="sidebar">
-        <h2>Apps</h2>
-        <ul>
-          <li onClick={() => addApp('Gmail')}><FaGoogle className="app-icon" /> Gmail</li>
-          <li onClick={() => addApp('Google Drive')}><FaGoogleDrive className="app-icon" /> Google Drive</li>
-          <li onClick={() => addApp('Notion')}><FaRegStickyNote className="app-icon" /> Notion</li>
-          <li onClick={() => addApp('ChatGPT')}><SiOpenai className="app-icon" /> ChatGPT</li>
-          <li onClick={() => addApp('Router')}> Router</li> {/* New router option */}
-        </ul>
-      </aside>
+  <h2>Apps</h2>
+  <ul>
+    <li onClick={() => addApp('Gmail')}><FaGoogle className="app-icon" /> Gmail</li>
+    <li onClick={() => addApp('Google Drive')}><FaGoogleDrive className="app-icon" /> Google Drive</li>
+    <li onClick={() => addApp('Notion')}><FaRegStickyNote className="app-icon" /> Notion</li>
+    <li onClick={() => addApp('ChatGPT')}><SiOpenai className="app-icon" /> ChatGPT</li>
+    <li onClick={() => addApp('Router')}> Router</li> {/* New router option */}
+  </ul>
+</aside>
 
       <main className="main-content">
         <header className="header">
@@ -214,39 +203,51 @@ function App() {
           </div>
         </header>
         <div className="canvas-container">
-          <canvas ref={canvasRef}></canvas>
-          {selectedApps.map((item, index) => (
-            <div
-              key={index}
-              className={`selected-app ${selectedAppForMenu === index ? 'menu-open' : ''}`}
-              style={{ top: item.y, left: item.x }}
-              onMouseDown={(e) => handleMouseDown(e, index)}
-              onClick={() => handleAppClick(item, index)}
-            >
-              {renderIcon(item.app)}
-              {selectedAppForMenu === index && (
-                <div className="app-menu">
-                  <button onClick={closeMenu}>Close</button>
-                  <button onClick={startConnecting}>Connect</button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {dropdownVisible && (
-          <div className="dropdown-container">
-            <select onChange={handleDropdownChange} defaultValue="">
-              <option value="" disabled>Select an app to connect</option>
-              {selectedApps.map((app, i) => (
-                <option key={i} value={i}>
-                  {app.app}
-                </option>
-              ))}
-            </select>
+          <canvas ref={canvasRef} id="canvas"></canvas>
+          <div className="selected-apps">
+            {selectedApps.map((item, index) => (
+              <div
+                key={index}
+                className="selected-app"
+                style={{ left: item.x, top: item.y }}
+                onMouseDown={(e) => handleMouseDown(e, index)}
+                onClick={() => handleAppClick(item, index)}
+              >
+                {renderIcon(item.app)}
+              </div>
+            ))}
           </div>
-        )}
+        </div>
       </main>
+      {selectedAppForMenu !== null && (
+        <aside
+          className="right-menu"
+          style={{
+            top: selectedApps[selectedAppForMenu].y,
+            left: selectedApps[selectedAppForMenu].x + 60,
+          }}
+        >
+          <div className="right-menu-header">
+            <h2>{selectedApps[selectedAppForMenu].app} Options</h2>
+            <button className="close-button" onClick={closeMenu}>X</button>
+          </div>
+          <div className="right-menu-content">
+            <button onClick={startConnecting}>Connect to another app</button>
+            {dropdownVisible && (
+              <select onChange={handleDropdownChange}>
+                <option value="">Select App</option>
+                {selectedApps.map((app, index) => (
+                  index !== selectedAppForMenu && (
+                    <option key={index} value={index}>
+                      {app.app}
+                    </option>
+                  )
+                ))}
+              </select>
+            )}
+          </div>
+        </aside>
+      )}
     </div>
   );
 }
